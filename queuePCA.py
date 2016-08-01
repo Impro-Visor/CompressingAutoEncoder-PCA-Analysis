@@ -31,6 +31,45 @@ border = 'none'
 axes = []
 
 #############################################
+
+def stacked_1D_graphs():
+	'''displays 1D graphs for each of the principal components stacked on top of each other'''
+	fig = plt.figure()
+	#three graphs: for articulation, rests, and sustians, respectively
+	art = fig.add_subplot(111)
+	art.set_xlabel('Values')
+	art.set_ylabel('Component')
+	rest = fig.add_subplot(111)
+	sust = fig.add_subplot(111)
+	rest.set_xlabel('Values')
+	rest.set_ylabel('Component')
+	sust.set_xlabel('Values')
+	sust.set_ylabel('Component')
+	#three color schemes: for articulation, rests, and sustains, respectively
+	articulate_values = np.loadtxt("features_property_values_articulate.v", delimiter=",")
+	art_colors = [element for element in articulate_values]
+	rest_values = np.loadtxt("features_property_values_rest.v", delimiter=",")
+	rest_colors = [element for element in rest_values]
+	sustain_values = np.loadtxt("features_property_values_sustain.v", delimiter=",")
+	sust_colors = [element for element in sustain_values]
+	for i in range(100):
+		y_axis = [i]*len(results.Y[:,i])
+		beep = art.scatter(results.Y[:,i], y_axis, c=art_colors, cmap=point_color, marker='o', edgecolors=border)
+	art.set_title('Principal Component Distribution: Articulate')
+	plt.savefig('PCA_distribution_articulate.png')
+	for i in range(100):
+		y_axis = [i]*len(results.Y[:,i])
+		boop = rest.scatter(results.Y[:,i], y_axis, c=rest_colors, cmap=point_color, marker='o', edgecolors=border)
+	rest.set_title('Principal Component Distribution: Rest')
+	plt.savefig('PCA_distribution_rest.png')
+	for i in range(100):
+		y_axis = [i]*len(results.Y[:,i])
+		lolo = sust.scatter(results.Y[:,i], y_axis, c=sust_colors, cmap=point_color, marker='o', edgecolors=border)
+	sust.set_title('Principal Component Distribution: Sustain')
+	plt.savefig('PCA_distribution_sustain.png')
+
+#############################################
+
 '''
 Interpolation Graph Functions
 '''
