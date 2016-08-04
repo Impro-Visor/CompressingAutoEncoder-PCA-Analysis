@@ -4,14 +4,20 @@ from scipy import special
 from matplotlib.mlab import PCA
 import itertools
 
-featureMatrix = np.loadtxt("featureMatrix.m", delimiter=",")
-referenceQueueMatrix = np.loadtxt("refQueueFeatureMatrix.m", delimiter=",")
+featureMatrix = np.loadtxt("featureMatrix.mat", delimiter=",")
+referenceQueueMatrix = np.loadtxt("refQueueFeatureMatrix.mat", delimiter=",")
 featureMatrix = sp.special.logit(featureMatrix)
 referenceQueueMatrix = sp.special.logit(referenceQueueMatrix)
 results = PCA(featureMatrix)
 print(results.Wt)
 print(len(results.Wt[:,0]))
 
+
+pca_mean = results.mu #the mean vector
+pca_components = results.Wt #matrix of the component vectors
+pca_component_strengths = results.s #vector of the eigenvalues for each component
+
+#the principal components (added to the eigenvalue for each feature) added to the mean
 final_components = results.mu + (results.Wt * results.s[:,np.newaxis])
 
 start = 0
@@ -28,15 +34,17 @@ point_color = 'viridis'
 background = 'white'
 border = 'none'
 
-axes = []
-
 #############################################
 
-def stacked_1D_graphs():
+def stacked_1D_graphs(n=len(results.Wt[:,0])):
 	'''displays 1D graphs for each of the principal components stacked on top of each other'''
+	if n>len(results.Wt[:,0]):
+		n = len(results.Wt[:,0])
+	elif n<1:
+		n = 1
 	x_graph_data = []
 	y_graph_data = []
-	for i in range(100):
+	for i in range(n):
 		x_data = list(results.Y[:,i])
 		y_data = [i]*len(x_data)
 		x_graph_data += x_data
@@ -47,8 +55,8 @@ def stacked_1D_graphs():
 	art.set_title('Principal Component Distribution: Articulate')
 	art.set_xlabel('Values')
 	art.set_ylabel('Component')
-	articulate_values = np.loadtxt("features_property_values_articulate.v", delimiter=",")
-	art_colors = [element for element in articulate_values]*100
+	articulate_values = np.loadtxt("features_property_values_articulate.vec", delimiter=",")
+	art_colors = [element for element in articulate_values]*n
 	beep = art.scatter(x_graph_data, y_graph_data, c=art_colors, cmap=point_color, marker='o', edgecolors=border)
 	plt.colorbar(beep)
 	plt.savefig('PCA_distribution_articulate.png')
@@ -58,8 +66,8 @@ def stacked_1D_graphs():
 	rest.set_title('Principal Component Distribution: Rest')
 	rest.set_xlabel('Values')
 	rest.set_ylabel('Component')
-	rest_values = np.loadtxt("features_property_values_rest.v", delimiter=",")
-	rest_colors = [element for element in rest_values]*100
+	rest_values = np.loadtxt("features_property_values_rest.vec", delimiter=",")
+	rest_colors = [element for element in rest_values]*n
 	boop = rest.scatter(x_graph_data, y_graph_data, c=rest_colors, cmap=point_color, marker='o', edgecolors=border)
 	plt.colorbar(boop)
 	plt.savefig('PCA_distribution_rest.png')
@@ -69,15 +77,14 @@ def stacked_1D_graphs():
 	sust.set_title('Principal Component Distribution: Sustain')
 	sust.set_xlabel('Values')
 	sust.set_ylabel('Component')
-	sustain_values = np.loadtxt("features_property_values_sustain.v", delimiter=",")
-	sust_colors = [element for element in sustain_values]*100
+	sustain_values = np.loadtxt("features_property_values_sustain.vec", delimiter=",")
+	sust_colors = [element for element in sustain_values]*n
 	lolo = sust.scatter(x_graph_data, y_graph_data, c=sust_colors, cmap=point_color, marker='o', edgecolors=border)
 	plt.colorbar(lolo)
 	plt.savefig('PCA_distribution_sustain.png')
 
 	plt.show()
-
-stacked_1D_graphs()
+	
 #############################################
 
 '''
@@ -99,7 +106,7 @@ def plot_interp_state(xVals, yVals, zVals, i, showGraph = True):
 	ax = fig1.add_subplot(111, projection='3d', axisbg = background)
 	ax.set_title('Interpolation Feature Matrix with PCA (' + str(i) + ')')
 
-	sustain_values = np.loadtxt("features_property_values_sustain.v", delimiter=",")
+	sustain_values = np.loadtxt("features_property_values_sustain.vec", delimiter=",")
 	colors = [element for element in sustain_values]
 	boop = ax.scatter(graph_data[:,0], graph_data[:,1], graph_data[:,2], c=colors, cmap=point_color, marker='o', alpha=0.04, edgecolors=border)
 	branno = ax.scatter(xVals, yVals, zVals, c='red', marker='o', edgecolors='none')
@@ -156,7 +163,7 @@ def absurdly_many_graphs():
 		fig = plt.figure()
 		ax = fig.add_subplot(111, projection='3d', axisbg = background)
 		ax.set_title("Percentage of resting time steps")
-		rest_values = np.loadtxt("features_property_values_rest.v", delimiter=",")
+		rest_values = np.loadtxt("features_property_values_rest.vec", delimiter=",")
 		colors = [element for element in rest_values]
 		boop = ax.scatter(data[:,0], data[:,1], data[:,2], c=colors, cmap=point_color, marker='o', edgecolors='none')
 		ax.set_xlabel('PCA[' +str(i)+ '] magnitude')
@@ -168,7 +175,7 @@ def absurdly_many_graphs():
 		fig2 = plt.figure()
 		ax1 = fig2.add_subplot(111, projection='3d', axisbg = background)
 		ax1.set_title("Percentage of sustaining time steps")
-		sustain_values = np.loadtxt("features_property_values_sustain.v", delimiter=",")
+		sustain_values = np.loadtxt("features_property_values_sustain.vec", delimiter=",")
 		colors = [element for element in sustain_values]
 		boop = ax1.scatter(data[:,0], data[:,1], data[:,2], c=colors, cmap=point_color, marker='o', edgecolors='none')
 		ax.set_xlabel('PCA['+ str(i) +'] magnitude')
@@ -180,7 +187,7 @@ def absurdly_many_graphs():
 		fig2 = plt.figure()
 		ax2 = fig2.add_subplot(111, projection='3d', axisbg = background)
 		ax2.set_title("Percentage of articulating time steps")
-		articulate_values = np.loadtxt("features_property_values_articulate.v", delimiter=",")
+		articulate_values = np.loadtxt("features_property_values_articulate.vec", delimiter=",")
 		colors = [element for element in articulate_values]
 		boop = ax2.scatter(data[:,0], data[:,1], data[:,2], c=colors, cmap=point_color, marker='o', edgecolors='none')
 		ax.set_xlabel('PCA['+ str(i) +'] magnitude')
@@ -196,7 +203,7 @@ def original():
 	fig = plt.figure()
 	ax = fig.add_subplot(111, projection='3d', axisbg = background)
 	ax.set_title("Percentage of resting time steps")
-	rest_values = np.loadtxt("features_property_values_rest.v", delimiter=",")
+	rest_values = np.loadtxt("features_property_values_rest.vec", delimiter=",")
 	colors = [element for element in rest_values]
 	boop = ax.scatter(graph_data[:,0], graph_data[:,1], graph_data[:,2], c=colors, cmap=point_color, marker='o', edgecolors='none')
 	ax.set_xlabel('PCA[0] magnitude')
@@ -207,7 +214,7 @@ def original():
 	fig2 = plt.figure()
 	ax1 = fig2.add_subplot(111, projection='3d', axisbg = background)
 	ax1.set_title("Percentage of sustaining time steps")
-	sustain_values = np.loadtxt("features_property_values_sustain.v", delimiter=",")
+	sustain_values = np.loadtxt("features_property_values_sustain.vec", delimiter=",")
 	colors = [element for element in sustain_values]
 	boop = ax1.scatter(graph_data[:,0], graph_data[:,1], graph_data[:,2], c=colors, cmap=point_color, marker='o', edgecolors='none')
 	ax1.set_xlabel('PCA[0] magnitude')
@@ -218,7 +225,7 @@ def original():
 	fig2 = plt.figure()
 	ax2 = fig2.add_subplot(111, projection='3d', axisbg = background)
 	ax2.set_title("Percentage of articulating time steps")
-	articulate_values = np.loadtxt("features_property_values_articulate.v", delimiter=",")
+	articulate_values = np.loadtxt("features_property_values_articulate.vec", delimiter=",")
 	colors = [element for element in articulate_values]
 	boop = ax2.scatter(graph_data[:,0], graph_data[:,1], graph_data[:,2], c=colors, cmap=point_color, marker='o', edgecolors='none')
 	ax2.set_xlabel('PCA[0] magnitude')
@@ -230,9 +237,9 @@ def original():
 	projectedQueueMatrix = results.project(referenceQueueMatrix)
 	projectedQueueMatrix = sp.special.expit(projectedQueueMatrix)
 	sigmoidedResults = sp.special.expit(final_components)
-	np.savetxt("sValues.m", results.s, delimiter=",")
-	np.savetxt("projectedQueueMatrix.m", projectedQueueMatrix, delimiter=",")
-	np.savetxt("pcaResults.m", sigmoidedResults, delimiter=",")
+	np.savetxt("sValues.mat", results.s, delimiter=",")
+	np.savetxt("projectedQueueMatrix.mat", projectedQueueMatrix, delimiter=",")
+	np.savetxt("pcaResults.mat", sigmoidedResults, delimiter=",")
 
 #######################################
 
